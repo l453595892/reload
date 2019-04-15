@@ -2,10 +2,12 @@ package controller
 
 import (
 	"craftli.co/reload/pkg/handler"
+	"craftli.co/reload/pkg/resource"
 	"craftli.co/reload/pkg/util"
 	"fmt"
 	"github.com/sirupsen/logrus"
 	"github.com/stakater/Reloader/pkg/kube"
+	"k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/fields"
 	"k8s.io/apimachinery/pkg/util/runtime"
 	"k8s.io/apimachinery/pkg/util/wait"
@@ -23,15 +25,14 @@ type Controller struct {
 	namespace string
 }
 
-func NewController(resource string, namespace string) (*Controller, error) {
+func NewController(resource string) (*Controller, error) {
 
 	c := Controller{
-		client:    util.KubeClient,
-		namespace: namespace,
+		client: util.KubeClient,
 	}
 
 	queue := workqueue.NewRateLimitingQueue(workqueue.DefaultControllerRateLimiter())
-	listWatcher := cache.NewListWatchFromClient(util.KubeClient.CoreV1().RESTClient(), resource, namespace, fields.Everything())
+	listWatcher := cache.NewListWatchFromClient(util.KubeClient.CoreV1().RESTClient(), resource, v1.NamespaceAll, fields.Everything())
 	indexer, informer := cache.NewIndexerInformer(listWatcher, kube.ResourceMap[resource], 0, cache.ResourceEventHandlerFuncs{
 		//AddFunc:    c.Add,
 		UpdateFunc: c.Update,
@@ -44,7 +45,7 @@ func NewController(resource string, namespace string) (*Controller, error) {
 }
 
 func (c *Controller) Update(oldObj, newObj interface{}) {
-	c.queue.Add(handler.UpdateHandler{
+	c.queue.Add(resource.UpdateHandler{
 		NewObj: newObj,
 		OldObj: oldObj,
 	})

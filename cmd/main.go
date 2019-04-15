@@ -11,9 +11,9 @@ import (
 
 var (
 	ResourceMap = map[string]runtime.Object{
-		//string(v1.ResourceConfigMaps): &v1.ConfigMap{},
-		//string(v1.ResourceSecrets):    &v1.Secret{},
-		string(v1.ResourceServices): &v1.Service{},
+		string(v1.ResourceConfigMaps): &v1.ConfigMap{},
+		string(v1.ResourceSecrets):    &v1.Secret{},
+		//string(v1.ResourceServices): &v1.Service{},
 	}
 )
 
@@ -21,7 +21,7 @@ func main() {
 	stop := make(chan struct{})
 	defer close(stop)
 	for k := range ResourceMap {
-		c, err := controller.NewController(k, "hyper")
+		c, err := controller.NewController(k)
 		if err != nil {
 			logrus.Fatalf("%s", err)
 		}
