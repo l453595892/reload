@@ -1,73 +1,44 @@
 apiVersion: v1
 kind: Namespace
 metadata:
-  name: {{NAMESPACE}}
+  name: controller
 ---
 apiVersion: v1
 kind: ServiceAccount
 metadata:
-  name: resource
-  namespace: {{NAMESPACE}}
+  name: reload
+  namespace: controller
 ---
 apiVersion: rbac.authorization.k8s.io/v1beta1
 kind: ClusterRoleBinding
 metadata:
-  name: resource-{{NAMESPACE}}
+  name: reload-controller
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
   name: cluster-admin
 subjects:
   - kind: ServiceAccount
-    name: resource
-    namespace: {{NAMESPACE}}
+    name: reload
+    namespace: controller
 ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{SERVICE_NAME}}
-  namespace: {{NAMESPACE}}
+  name: reload
+  namespace: controller
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: resource
+      app: reload
   template:
     metadata:
       labels:
-        app: resource
+        app: reload
     spec:
-      serviceAccount: resource
+      serviceAccount: reload
       containers:
-      - name: resource
-        image: kunlun01.bbdops.com:5000/{{SERVICE_NAME}}:{{NAMESPACE}}
+      - name: reload
+        image: l453595892/reload:latest
         imagePullPolicy: Always
-        env:
-         - name: TYPE
-           value: {{NAMESPACE}}
-         - name: GATEWAY_INGRESS_HOST
-           value: {{GATEWAY_INGRESS_HOST}}
-         - name: LABEL_SELECTOR
-           value: "NODE=work"
-        volumeMounts:
-        - mountPath: /data/
-          name: template-resource
-      volumes:
-      - name: template-resource
-        configMap:
-           name: resource-mysql-config
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: resource
-  namespace: {{NAMESPACE}}
-  labels:
-    run: resource
-spec:
-  ports:
-  - port: 5000
-    protocol: TCP
-    targetPort: 5000
-  selector:
-    app: resource
