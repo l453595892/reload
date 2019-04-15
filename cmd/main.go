@@ -1,31 +1,34 @@
 package main
 
 import (
-	"flag"
-	"k8s.io/client-go/kubernetes"
-	"k8s.io/client-go/tools/clientcmd"
+	"craftli.co/reload/pkg/controller"
+	_ "craftli.co/reload/pkg/util"
+	"github.com/sirupsen/logrus"
+	"k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/runtime"
 	"time"
-	"craftli.co/reload"
 )
 
 var (
-	kubeconfig = flag.String("kubeconfig", "./config", "absolute path to the kubeconfig file")
+	ResourceMap = map[string]runtime.Object{
+		//string(v1.ResourceConfigMaps): &v1.ConfigMap{},
+		//string(v1.ResourceSecrets):    &v1.Secret{},
+		string(v1.ResourceServices): &v1.Service{},
+	}
 )
 
 func main() {
-	flag.Parse()
-	config, err := clientcmd.BuildConfigFromFlags("", *kubeconfig)
-	if err != nil {
-		panic(err.Error())
-	}
-	clientset, err := kubernetes.NewForConfig(config)
-	if err != nil {
-		panic(err.Error())
-	}
-
 	stop := make(chan struct{})
-	configMapController:= reload.NewConfigmapController(clientset)
-	go configMapController.Run(stop)
+	defer close(stop)
+	for k := range ResourceMap {
+		c, err := controller.NewController(k, "hyper")
+		if err != nil {
+			logrus.Fatalf("%s", err)
+		}
+
+		logrus.Infof("Starting Controller to watch resource type: %s", k)
+		go c.Run(1, stop)
+	}
 	for {
 		time.Sleep(time.Second)
 	}
