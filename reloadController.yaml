@@ -41,4 +41,4 @@ spec:
       containers:
       - name: reload
         image: l453595892/reload:latest
-        imagePullPolicy: Always
+        imagePullPolicy: IfNotPresent

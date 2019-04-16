@@ -4,17 +4,16 @@ import (
 	"flag"
 	"github.com/sirupsen/logrus"
 	"k8s.io/client-go/kubernetes"
-	"k8s.io/client-go/tools/clientcmd"
+	"k8s.io/client-go/rest"
 )
 
 var (
 	KubeClient *kubernetes.Clientset
-	//kubeconfig = flag.String("kubeconfig", "./config", "absolute path to the kubeconfig file")
 )
 
 func init() {
 	flag.Parse()
-	config, err := clientcmd.BuildConfigFromFlags("", "/Users/liweijie/go/src/craftli.co/reload/cmd/config")
+	config, err := rest.InClusterConfig()
 	if err != nil {
 		logrus.Error("kubernetes client config error")
 	}

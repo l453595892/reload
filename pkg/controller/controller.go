@@ -34,9 +34,7 @@ func NewController(resource string) (*Controller, error) {
 	queue := workqueue.NewRateLimitingQueue(workqueue.DefaultControllerRateLimiter())
 	listWatcher := cache.NewListWatchFromClient(util.KubeClient.CoreV1().RESTClient(), resource, v1.NamespaceAll, fields.Everything())
 	indexer, informer := cache.NewIndexerInformer(listWatcher, kube.ResourceMap[resource], 0, cache.ResourceEventHandlerFuncs{
-		//AddFunc:    c.Add,
 		UpdateFunc: c.Update,
-		DeleteFunc: c.Delete,
 	}, cache.Indexers{})
 	c.indexer = indexer
 	c.informer = informer
@@ -49,10 +47,6 @@ func (c *Controller) Update(oldObj, newObj interface{}) {
 		NewObj: newObj,
 		OldObj: oldObj,
 	})
-}
-
-func (c *Controller) Delete(oldObj interface{}) {
-
 }
 
 func (c *Controller) Run(threadiness int, stopCh chan struct{}) {
