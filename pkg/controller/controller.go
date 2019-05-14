@@ -35,6 +35,8 @@ func NewController(resource string) (*Controller, error) {
 	listWatcher := cache.NewListWatchFromClient(util.KubeClient.CoreV1().RESTClient(), resource, v1.NamespaceAll, fields.Everything())
 	indexer, informer := cache.NewIndexerInformer(listWatcher, kube.ResourceMap[resource], 0, cache.ResourceEventHandlerFuncs{
 		UpdateFunc: c.Update,
+		//TODO
+		//DeleteFunc:
 	}, cache.Indexers{})
 	c.indexer = indexer
 	c.informer = informer
